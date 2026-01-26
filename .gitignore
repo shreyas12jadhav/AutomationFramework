@@ -1,0 +1,11 @@
+/target/
+/test-output/
+/logs/
+/reports/
+/screenshots/
+*.log
+*.tmp
+*.class
+.idea/
+.vscode/
+.settings/
