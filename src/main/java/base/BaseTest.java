@@ -59,7 +59,7 @@ public class BaseTest {
         test = extent.createTest(method.getName());
 
         //String browser = ConfigReader.get("browser");
-        boolean isCI = System.getenv("CI") != null;
+       // boolean isCI = System.getenv("GITHUB_ACTIONS") != null;
 
         WebDriver localDriver;
 
@@ -68,14 +68,14 @@ public class BaseTest {
             ChromeOptions options = new ChromeOptions();
 
             // ✅ Headless for CI
-            if (System.getenv("CI") != null) {
+            if (isCI()) {
                 options.addArguments("--headless=new");
                 options.addArguments("--no-sandbox");
                 options.addArguments("--disable-dev-shm-usage");
                 options.addArguments("--disable-gpu");
                 options.addArguments("--window-size=1920,1080");
             }
-            localDriver = new ChromeDriver();
+            localDriver = new ChromeDriver(options);
         }
         else if (browser.equalsIgnoreCase("edge")) {
             WebDriverManager.edgedriver().setup();
@@ -86,11 +86,11 @@ public class BaseTest {
             FirefoxOptions options = new FirefoxOptions();
 
             // ✅ Headless for CI
-            if (System.getenv("CI") != null) {
+            if (isCI()) {
                 options.addArguments("--headless");
             }
 
-            localDriver = new FirefoxDriver();
+            localDriver = new FirefoxDriver(options);
         }
         else {
             throw new RuntimeException("Unsupported browser: " + browser);
