@@ -10,9 +10,9 @@ on:
 
 jobs:
 
-# ===============================
-# SMOKE TESTS (parallel browsers)
-# ===============================
+# =========================
+# SMOKE TESTS (parallel)
+# =========================
   build:
     runs-on: ubuntu-latest
 
@@ -33,48 +33,18 @@ jobs:
       - name: Run Smoke Tests
         run: mvn clean test -DsuiteXmlFile=testng-smoke.xml
 
-      # ✅ Only upload artifacts (NOT pages)
+      # save raw reports (artifact)
       - name: Upload Test Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Test-Reports-${{ matrix.browser }}
-          path: |
-            reports
-            screenshots
-            test-output
+          path: reports
 
 
-# ===============================
-# REGRESSION (nightly only)
-# ===============================
-  regression:
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-
-      - run: mvn clean test -DsuiteXmlFile=testng-regression.xml
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Regression-Reports
-          path: |
-            reports
-            screenshots
-            test-output
-
-
-# ===============================
-# PAGES DEPLOY (runs once only)
-# ===============================
+# =========================
+# DEPLOY REPORT TO PAGES
+# =========================
   deploy-report:
     needs: build
     runs-on: ubuntu-latest
@@ -85,20 +55,17 @@ jobs:
       contents: read
 
     steps:
-      # download ALL artifacts
       - uses: actions/download-artifact@v4
         with:
+          name: Test-Reports-chrome
           path: site
 
-      # copy chrome report as main page
-      - name: Prepare site
-        run: |
-          cp site/Test-Reports-chrome/reports/index.html site/index.html
+      # rename Extent report to index.html (important for Pages)
+      - name: Prepare site root
+        run: mv site/ExtentReport.html site/index.html
 
-      # upload single pages artifact
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
 
-      # deploy
       - uses: actions/deploy-pages@v4
