@@ -7,7 +7,6 @@ on:
   schedule:
     - cron: '30 20 * * *'
 
-
 jobs:
 
 # =========================
@@ -33,7 +32,6 @@ jobs:
       - name: Run Smoke Tests
         run: mvn clean test -DsuiteXmlFile=testng-smoke.xml
 
-      # save raw reports (artifact)
       - name: Upload Test Reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -60,12 +58,20 @@ jobs:
           name: Test-Reports-chrome
           path: site
 
-      # rename Extent report to index.html (important for Pages)
       - name: Prepare site root
-        run: mv site/ExtentReport.html site/index.html
+        run: |
+          mv site/ExtentReport site/index.html
 
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
 
       - uses: actions/deploy-pages@v4
+
+      # Slack alert
+      - name: Notify Slack on failure
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data "{\"text\":\"❌ Automation FAILED\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nLogs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+          ${{ secrets.SLACK_WEBHOOK }}
