@@ -65,7 +65,7 @@ jobs:
       - name: Merge Allure results
         run: |
           mkdir -p allure-results
-          cp -r artifacts/**/target/allure-results/* allure-results/ || true
+          find artifacts -type d -name "allure-results" -exec cp -r {}/* allure-results/ \;
 
       # Install Node (for Allure CLI)
       - name: Setup Node
