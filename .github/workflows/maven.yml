@@ -60,25 +60,33 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
-
+    
+     # Merge allure results 
       - name: Merge Allure results
         run: |
           mkdir -p allure-results
           cp -r artifacts/**/target/allure-results/* allure-results/ || true
 
-      - name: Generate Allure report
-        uses: simple-elf/allure-report-action@v1
+      # Install Node (for Allure CLI)
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          allure_results: allure-results
-          allure_report: allure-report
-          gh_pages: gh-pages
-
+          node-version: 20
+  
+      # Install Allure CLI
+      - name: Install Allure
+        run: npm install -g allure-commandline --save-dev
+  
+      # Generate HTML report
+      - name: Generate Allure Report
+        run: allure generate allure-results --clean -o site
+  
+      # Deploy to GitHub Pages
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: allure-report
-
+          path: site
+  
       - uses: actions/deploy-pages@v4
-
 
 
 # ======================================
