@@ -2,16 +2,17 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
   schedule:
-    - cron: '30 20 * * *'
+    - cron: '30 20 * * *'   # nightly regression
+
 
 jobs:
 
-# =========================
-# SMOKE TESTS (parallel)
-# =========================
+# ======================================
+# SMOKE TESTS (parallel chrome+firefox)
+# ======================================
   build:
     runs-on: ubuntu-latest
 
@@ -25,24 +26,27 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: 17
           cache: maven
 
       - name: Run Smoke Tests
         run: mvn clean test -DsuiteXmlFile=testng-smoke.xml
 
-      - name: Upload Test Reports
+      - name: Upload Raw Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Test-Reports-${{ matrix.browser }}
-          path: reports
+          name: reports-${{ matrix.browser }}
+          path: |
+            reports
+            target/allure-results
 
 
-# =========================
-# DEPLOY REPORT TO PAGES
-# =========================
+
+# ======================================
+# ALLURE DASHBOARD + PAGES DEPLOY
+# ======================================
   deploy-report:
     needs: build
     runs-on: ubuntu-latest
@@ -55,23 +59,65 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: Test-Reports-chrome
-          path: site
+          path: artifacts
 
-      - name: Prepare site root
+      - name: Merge Allure results
         run: |
-          mv site/ExtentReport.html site/index.html
+          mkdir -p allure-results
+          cp -r artifacts/**/target/allure-results/* allure-results/ || true
+
+      - name: Generate Allure report
+        uses: simple-elf/allure-report-action@v1
+        with:
+          allure_results: allure-results
+          allure_report: allure-report
+          gh_pages: gh-pages
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: allure-report
 
       - uses: actions/deploy-pages@v4
 
-      # Slack alert
-      - name: Notify Slack on failure
+
+
+# ======================================
+# SLACK NOTIFICATIONS
+# ======================================
+  notify:
+    needs: deploy-report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Slack Success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data "{\"text\":\"✅ Automation PASSED\nDashboard: https://${{ github.repository_owner }}.github.io/AutomationFramework/\nRun: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+          ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Slack Failure
         if: failure()
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data "{\"text\":\"❌ Automation FAILED\nRepo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nLogs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+          --data "{\"text\":\"❌ Automation FAILED\nRun: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
           ${{ secrets.SLACK_WEBHOOK }}
+
+
+
+# ======================================
+# NIGHTLY REGRESSION
+# ======================================
+  regression:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - run: mvn clean test -DsuiteXmlFile=testng-regression.xml
