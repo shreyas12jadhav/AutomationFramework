@@ -83,6 +83,14 @@
 		    <artifactId>log4j-api</artifactId>
 		    <version>2.23.1</version>
 		</dependency>
+		
+	<!-- Add Allure (visual dashboard)-->	
+		<dependency>
+    <groupId>io.qameta.allure</groupId>
+    <artifactId>allure-testng</artifactId>
+    <version>2.25.0</version>
+</dependency>
+
 
  </dependencies>
  

@@ -16,5 +16,6 @@
             <class name="tests.DashboardTest"/>
         </classes>
     </test>
+    
 
 </suite>

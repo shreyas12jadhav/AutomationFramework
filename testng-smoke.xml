@@ -4,6 +4,7 @@
 
     <listeners>
         <listener class-name="utils.RetryListener"/>
+        <listener class-name="io.qameta.allure.testng.AllureTestNg"/>
     </listeners>
 
     <test name="Smoke Tests">
@@ -17,4 +18,5 @@
             <package name="tests"/>
         </packages>
     </test>
+
 </suite>
