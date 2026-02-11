@@ -97,16 +97,19 @@
  <!-- Fix Surefire Plugin in pom.xml-->
 <build>
     <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.2.5</version>
-            <configuration>
-                <suiteXmlFiles>
-                    <suiteXmlFile>testng-crossbrowser.xml</suiteXmlFile>
-                </suiteXmlFiles>
-            </configuration>
-        </plugin>
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.2.5</version>
+    <configuration>
+        <suiteXmlFiles>
+            <suiteXmlFile>testng-smoke.xml</suiteXmlFile>
+        </suiteXmlFiles>
+        <systemPropertyVariables>
+            <allure.results.directory>target/allure-results</allure.results.directory>
+        </systemPropertyVariables>
+    </configuration>
+</plugin>
     </plugins>
 </build>
 
