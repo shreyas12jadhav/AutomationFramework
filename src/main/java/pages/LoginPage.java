@@ -1,6 +1,7 @@
 package pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 
 import base.BaseTest;
 import utils.ConfigReader;
@@ -10,7 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class LoginPage {
-
+	private WebDriver driver; 
     private static Logger log = LogManager.getLogger(LoginPage.class);
 
     private By username = By.id("username");
@@ -18,10 +19,15 @@ public class LoginPage {
     private By loginBtn = By.cssSelector("button[type='submit']");
     private By message = By.id("flash");
 
-    public void open() {
+    public LoginPage(WebDriver driver) {
+    	this.driver = driver;
+	}
+
+
+	public void open() {
         log.info("Opening login page");
-        BaseTest.getDriver().manage().deleteAllCookies();
-        BaseTest.getDriver().get(ConfigReader.get("baseUrl"));
+        driver.manage().deleteAllCookies();
+        driver.get(ConfigReader.get("baseUrl"));
         WaitUtils.waitForVisibility(username);
     }
 

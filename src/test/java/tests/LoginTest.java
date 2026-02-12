@@ -5,6 +5,8 @@ import pages.LoginPage;
 import utils.ExcelUtil;
 import utils.RetryAnalyzer;
 
+import java.sql.DriverManager;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -14,9 +16,9 @@ public class LoginTest extends BaseTest {
 
     private LoginPage loginPage;
 
-    @BeforeMethod
-    public void setupTest() {
-        loginPage = new LoginPage(); // ✅ driver is now ready
+    @BeforeMethod(alwaysRun = true)
+    public void initPage() {
+        loginPage = new LoginPage(getDriver());
     }
     
     @DataProvider(name = "browsers", parallel = true)
