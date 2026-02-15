@@ -35,7 +35,7 @@ public class ScreenshotUtil {
             Files.copy(src, dest);
             
             byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
-            Allure.addAttachment(testName, new ByteArrayInputStream(screenshot));
+            Allure.addAttachment(testName, "image/png", new ByteArrayInputStream(screenshot), ".png");
 
             System.out.println("✅ Screenshot saved at: " + fullPath);
             return fullPath;
