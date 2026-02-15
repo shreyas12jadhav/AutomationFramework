@@ -5,14 +5,14 @@ on:
     branches: ["main"]
 
   schedule:
-    - cron: '30 20 * * *'   # nightly regression
-
+    - cron: '30 20 * * *'
 
 jobs:
-# ======================================
-# SMOKE TESTS (parallel chrome+firefox)
-# ======================================
-build:
+
+  # ======================================
+  # SMOKE TESTS (parallel chrome+firefox)
+  # ======================================
+  build:
     runs-on: ubuntu-latest
 
     strategy:
@@ -40,28 +40,30 @@ build:
           path: |
             reports
             target/allure-results
-# ======================================
-# API Jobs for Rest assured 
-# ======================================
-     api-tests:
-      runs-on: ubuntu-latest
 
-      steps:
-       - user: actions/checkout@v4
 
-       - user: actions/steup-java@v4
-         with:
-           distribution: temurin
-           java-version: 17
-           cache: maven
+  # ======================================
+  # API Tests
+  # ======================================
+  api-tests:
+    runs-on: ubuntu-latest
 
-       - name: Run API Tests
-         run: mvn clean test -DsuiteXmlFile=testng-api.xml
-       
+    steps:
+      - uses: actions/checkout@v4
 
-# ======================================
-# ALLURE DASHBOARD + PAGES DEPLOY
-# ======================================
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Run API Tests
+        run: mvn clean test -DsuiteXmlFile=testng-api.xml
+
+
+  # ======================================
+  # ALLURE DASHBOARD + PAGES DEPLOY
+  # ======================================
   deploy-report:
     needs: build
     runs-on: ubuntu-latest
@@ -79,54 +81,46 @@ build:
       - name: Debug list artifacts
         run: ls -R artifacts
 
-    # Download previous pages content (for history)
       - name: Checkout gh-pages
         uses: actions/checkout@v4
         with:
           ref: gh-pages
           path: gh-pages
         continue-on-error: true
-    
-     # Merge allure results 
+
       - name: Merge Allure results
         run: |
           mkdir -p target/allure-results
           find artifacts -name "*.json" -exec cp {} target/allure-results/ \;
 
-     # Download previous GitHub Pages (for history)
-      # Copy history from previous report
       - name: Copy history
         run: |
           if [ -d "gh-pages/history" ]; then
-            mkdir -p allure-results/history
-            cp -r gh-pages/history/* allure-results/history/
+            mkdir -p target/allure-results/history
+            cp -r gh-pages/history/* target/allure-results/history/
           fi
 
-      # Install Node (for Allure CLI)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-  
-      # Install Allure CLI
+
       - name: Install Allure CLI
-        run: npm install -g allure-commandline --save-dev
-  
-      # Generate HTML report
+        run: npm install -g allure-commandline
+
       - name: Generate Allure Report
         run: allure generate target/allure-results --clean -o site
-  
-      # Deploy to GitHub Pages
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
-  
+
       - uses: actions/deploy-pages@v4
 
 
-# ======================================
-# SLACK NOTIFICATIONS
-# ======================================
+  # ======================================
+  # SLACK NOTIFICATIONS
+  # ======================================
   notify:
     needs: deploy-report
     runs-on: ubuntu-latest
@@ -147,10 +141,9 @@ build:
           ${{ secrets.SLACK_WEBHOOK }}
 
 
-
-# ======================================
-# NIGHTLY REGRESSION
-# ======================================
+  # ======================================
+  # NIGHTLY REGRESSION
+  # ======================================
   regression:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
