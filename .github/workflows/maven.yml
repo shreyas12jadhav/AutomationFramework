@@ -12,7 +12,7 @@ jobs:
 # ======================================
 # SMOKE TESTS (parallel chrome+firefox)
 # ======================================
-   build:
+build:
     runs-on: ubuntu-latest
 
     strategy:
