@@ -10,6 +10,9 @@ import org.openqa.selenium.WebDriver;
 
 import com.google.common.io.Files;
 
+import io.qameta.allure.Allure;
+import java.io.ByteArrayInputStream;
+
 public class ScreenshotUtil {
 
     public static String takeScreenshot(WebDriver driver, String testName) {
@@ -27,10 +30,12 @@ public class ScreenshotUtil {
             String screenshotName = testName + "_" + timestamp + ".png";
             String fullPath = screenshotDir + File.separator + screenshotName;
 
-            File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);           
             File dest = new File(fullPath);
-
             Files.copy(src, dest);
+            
+            byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
+            Allure.addAttachment(testName, new ByteArrayInputStream(screenshot));
 
             System.out.println("✅ Screenshot saved at: " + fullPath);
             return fullPath;
