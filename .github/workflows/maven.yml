@@ -70,6 +70,16 @@ jobs:
           mkdir -p target/allure-results
           find artifacts -name "*.json" -exec cp {} target/allure-results/ \;
 
+     # Download previous GitHub Pages (for history)
+      - name: Download previous history
+        continue-on-error: true
+        run: |
+          git clone https://github.com/${{ github.repository_owner }}/AutomationFramework.git gh-pages || true
+          if [ -d "gh-pages/history" ]; then
+            mkdir -p allure-results/history
+            cp -r gh-pages/history/* allure-results/history/
+          fi
+
       # Install Node (for Allure CLI)
       - name: Setup Node
         uses: actions/setup-node@v4
