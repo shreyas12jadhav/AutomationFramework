@@ -63,6 +63,14 @@ jobs:
 
       - name: Debug list artifacts
         run: ls -R artifacts
+
+    # Download previous pages content (for history)
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true
     
      # Merge allure results 
       - name: Merge Allure results
@@ -71,10 +79,9 @@ jobs:
           find artifacts -name "*.json" -exec cp {} target/allure-results/ \;
 
      # Download previous GitHub Pages (for history)
-      - name: Download previous history
-        continue-on-error: true
+      # Copy history from previous report
+      - name: Copy history
         run: |
-          git clone https://github.com/${{ github.repository_owner }}/AutomationFramework.git gh-pages || true
           if [ -d "gh-pages/history" ]; then
             mkdir -p allure-results/history
             cp -r gh-pages/history/* allure-results/history/
